@@ -1,7 +1,7 @@
 import {ReactElement} from "react";
 import {StageBase, StageResponse, InitialData, Message} from "@chub-ai/stages-ts";
 import {LoadResponse} from "@chub-ai/stages-ts/dist/types/load";
-import {PixiAvatarView} from "./characters/PixiAvatarView";
+import { PixiAvatarView } from "./characters/PixiAvatarView";
 
 type MessageStateType = any;
 
@@ -44,7 +44,14 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
 
 
     render(): ReactElement {
-        return <PixiAvatarView />;
+        return <div style={{
+            width: '100vw',
+            height: '100vh',
+            display: 'grid',
+            alignItems: 'stretch'
+        }}>
+            <PixiAvatarView />
+        </div>;
     }
 
 }
