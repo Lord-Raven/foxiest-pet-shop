@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { Application } from 'pixi.js';
+import { Application, Assets } from 'pixi.js';
 import { AvatarActor, createDemoAvatarDefinition } from './ActorModel';
 
 export function PixiAvatarView() {
@@ -7,37 +7,61 @@ export function PixiAvatarView() {
 
     useEffect(() => {
         const host = hostRef.current;
+        let app: Application | null = null;
+        let disposed = false;
 
         if (!host) {
             return;
         }
 
-        const app = new Application({
-            antialias: true,
-            backgroundAlpha: 0,
-            resizeTo: host,
-        });
+        const init = async () => {
+            const definition = createDemoAvatarDefinition();
+            await Promise.all(definition.parts.map((part) => Assets.load(part.textureUrl)));
 
-        host.appendChild(app.view as HTMLCanvasElement);
+            if (disposed) {
+                return;
+            }
 
-        const actor = new AvatarActor(createDemoAvatarDefinition());
-        app.stage.addChild(actor.container);
+            app = new Application({
+                antialias: true,
+                backgroundAlpha: 0,
+                resizeTo: host,
+            });
 
-        const repositionActor = () => {
-            actor.container.position.set(app.screen.width * 0.5, app.screen.height * 0.7);
+            host.appendChild(app.view as HTMLCanvasElement);
+
+            const actor = new AvatarActor(definition);
+            app.stage.addChild(actor.container);
+
+            const repositionActor = () => {
+                actor.container.position.set(app!.screen.width * 0.5, app!.screen.height * 0.7);
+            };
+
+            repositionActor();
+
+            app.ticker.add((deltaTime) => {
+                actor.update(deltaTime / 60);
+            });
+
+            window.addEventListener('resize', repositionActor);
+
+            const destroy = () => {
+                window.removeEventListener('resize', repositionActor);
+            };
+
+            (app as Application & { __cleanup?: () => void }).__cleanup = destroy;
         };
 
-        repositionActor();
-
-        app.ticker.add((deltaTime) => {
-            actor.update(deltaTime / 60);
+        init().catch((error) => {
+            console.error('Failed to initialize Pixi avatar view', error);
         });
 
-        window.addEventListener('resize', repositionActor);
-
         return () => {
-            window.removeEventListener('resize', repositionActor);
-            app.destroy(true, { children: true, texture: false, baseTexture: false });
+            disposed = true;
+
+            const cleanup = (app as Application & { __cleanup?: () => void } | null)?.__cleanup;
+            cleanup?.();
+            app?.destroy(true, { children: true, texture: false, baseTexture: false });
         };
     }, []);
 
@@ -45,8 +69,8 @@ export function PixiAvatarView() {
         <div
             ref={hostRef}
             style={{
-                width: '100vw',
-                height: '100vh',
+                width: '100%',
+                height: '100%',
                 display: 'grid',
                 placeItems: 'stretch',
             }}

@@ -48,16 +48,25 @@ class DeformablePart {
 		const texture = Texture.from(definition.textureUrl);
 		this.mesh = new SimplePlane(texture, this.gridX, this.gridY);
 
-		// Scale the source texture to the part's authored size in scene units.
-		const sourceW = texture.orig.width || 1;
-		const sourceH = texture.orig.height || 1;
-		this.mesh.scale.set(definition.width / sourceW, definition.height / sourceH);
+		const applyScale = () => {
+			// Keep part dimensions stable once the texture metadata is available.
+			const sourceW = texture.orig.width || 1;
+			const sourceH = texture.orig.height || 1;
+			this.mesh.scale.set(definition.width / sourceW, definition.height / sourceH);
+		};
+		applyScale();
+		texture.once('update', applyScale);
 
 		this.mesh.position.set(definition.x, definition.y);
-		this.mesh.pivot.set(
-			sourceW * (definition.pivotX ?? 0.5),
-			sourceH * (definition.pivotY ?? 0.5),
-		);
+		const pivotX = definition.pivotX ?? 0.5;
+		const pivotY = definition.pivotY ?? 0.5;
+		const applyPivot = () => {
+			const sourceW = texture.orig.width || 1;
+			const sourceH = texture.orig.height || 1;
+			this.mesh.pivot.set(sourceW * pivotX, sourceH * pivotY);
+		};
+		applyPivot();
+		texture.once('update', applyPivot);
 		this.mesh.zIndex = definition.zIndex;
 
 		const vertexBuffer = this.mesh.geometry.getBuffer('aVertexPosition');
@@ -166,11 +175,13 @@ export class AvatarActor {
 }
 
 export function createDemoAvatarDefinition(): AvatarDefinition {
+	const baseUrl = import.meta.env.BASE_URL;
+
 	return {
 		parts: [
 			{
 				id: 'torso',
-				textureUrl: '/avatar-demo/torso.svg',
+				textureUrl: `${baseUrl}avatar-demo/torso.svg`,
 				width: 280,
 				height: 280,
 				x: 0,
@@ -189,7 +200,7 @@ export function createDemoAvatarDefinition(): AvatarDefinition {
 			},
 			{
 				id: 'head',
-				textureUrl: '/avatar-demo/head.svg',
+				textureUrl: `${baseUrl}avatar-demo/head.svg`,
 				width: 210,
 				height: 210,
 				x: 0,
@@ -208,7 +219,7 @@ export function createDemoAvatarDefinition(): AvatarDefinition {
 			},
 			{
 				id: 'hair',
-				textureUrl: '/avatar-demo/hair.svg',
+				textureUrl: `${baseUrl}avatar-demo/hair.svg`,
 				width: 230,
 				height: 210,
 				x: 0,
@@ -225,7 +236,7 @@ export function createDemoAvatarDefinition(): AvatarDefinition {
 			},
 			{
 				id: 'eyeLeft',
-				textureUrl: '/avatar-demo/eye-left.svg',
+				textureUrl: `${baseUrl}avatar-demo/eye-left.svg`,
 				width: 30,
 				height: 16,
 				x: -35,
@@ -236,7 +247,7 @@ export function createDemoAvatarDefinition(): AvatarDefinition {
 			},
 			{
 				id: 'eyeRight',
-				textureUrl: '/avatar-demo/eye-right.svg',
+				textureUrl: `${baseUrl}avatar-demo/eye-right.svg`,
 				width: 30,
 				height: 16,
 				x: 35,

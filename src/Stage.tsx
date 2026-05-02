@@ -45,7 +45,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
 
     render(): ReactElement {
         return <div style={{
-            width: '100vw',
+            width: '100%',
             height: '100vh',
             display: 'grid',
             alignItems: 'stretch'
