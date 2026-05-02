@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 280">
+  <defs>
+    <linearGradient id="torsoGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f4c6a4"/>
+      <stop offset="100%" stop-color="#d88f7b"/>
+    </linearGradient>
+  </defs>
+  <path d="M50 265c-14-54-12-101 6-140 18-37 48-57 84-57 39 0 70 20 88 57 18 39 20 86 6 140z" fill="url(#torsoGrad)"/>
+</svg>
